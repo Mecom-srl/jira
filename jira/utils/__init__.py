@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Jira utils used internally."""
+"""JIRA utils used internally."""
 import threading
 
 from jira.resilientsession import raise_on_error
@@ -7,42 +7,37 @@ from jira.resilientsession import raise_on_error
 
 class CaseInsensitiveDict(dict):
     """A case-insensitive ``dict``-like object.
-
     Implements all methods and operations of
     ``collections.MutableMapping`` as well as dict's ``copy``. Also
     provides ``lower_items``.
-
     All keys are expected to be strings. The structure remembers the
     case of the last key to be set, and ``iter(instance)``,
     ``keys()``, ``items()``, ``iterkeys()``
     will contain case-sensitive keys. However, querying and contains
     testing is case insensitive::
-
         cid = CaseInsensitiveDict()
         cid['Accept'] = 'application/json'
         cid['accept'] == 'application/json'  # True
         list(cid) == ['Accept']  # True
-
     For example, ``headers['content-encoding']`` will return the
     value of a ``'Content-Encoding'`` response header, regardless
     of how the header name was originally stored.
-
     If the constructor, ``.update``, or equality comparison
     operations are given keys that have equal ``.lower()``s, the
     behavior is undefined.
-
     """
 
     def __init__(self, *args, **kw):
         super(CaseInsensitiveDict, self).__init__(*args, **kw)
 
-        self.itemlist = {}
-        for key, value in super(CaseInsensitiveDict, self).copy().items():
+        upper_keys_list = []
+        for key in super(CaseInsensitiveDict, self).keys():
             if key != key.lower():
-                self[key.lower()] = value
-                self.pop(key, None)
+                upper_keys_list.append(key)
 
-        # self.itemlist[key.lower()] = value
+        for upper_key in upper_keys_list:
+            self[upper_key.lower()] = self[upper_key]
+            self.pop(upper_key, None)
 
     def __setitem__(self, key, value):
         """Overwrite [] implementation."""
